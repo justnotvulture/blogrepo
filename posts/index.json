@@ -1,0 +1,28 @@
+[
+  {
+    "slug": "spectral-scanner",
+    "title": "Building a spectral archival scanner for decaying film",
+    "author": "Matthieu",
+    "date": "2024-03",
+    "lede": "Why commercial scanners fail on vinegar syndrome film, and how to build something that doesn't — for about EUR 7,000 and a lot of weekends.",
+    "tags": [
+      "hardware",
+      "film",
+      "archival",
+      "optics"
+    ]
+  },
+  {
+    "slug": "you-cant-delete-a-neural-network",
+    "title": "You Can’t Delete a Neural Network",
+    "author": "Matthieu",
+    "date": "2026-02",
+    "lede": "The right to be forgotten assumes data can be deleted. Neural networks don’t work that way..",
+    "tags": [
+      "ai ethics",
+      "gdpr",
+      "privacy",
+      "digital memory"
+    ]
+  }
+]

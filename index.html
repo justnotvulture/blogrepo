@@ -1,0 +1,1298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Matthieu</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,300;1,6..72,400&family=JetBrains+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <script src="/js/marked.min.js"></script>
+  <link rel="stylesheet" href="/css/tomorrow-night.min.css">
+  <script src="/js/highlight.min.js"></script>
+  <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>-->
+
+  <style>
+    :root {
+      --paper: #F5F2EB;
+      --ink: #1A1714;
+      --mid: #6B635A;
+      --faint: #C4BDB4;
+      --rule: #DDD8D1;
+      --accent: #8B2500;
+      --accent-dim: rgba(139,37,0,0.08);
+      --warm: #FAF8F3;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--paper);
+      color: var(--ink);
+      font-family: 'Helvetica Neue', sans;
+      font-size: 19px;
+      line-height: 1.78;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    #app { opacity: 1; transition: opacity 0.1s ease; }
+    #app.fading { opacity: 0; }
+
+    /* ─ Reading progress ─ */
+    #progress {
+      position: fixed; top: 0; left: 0; z-index: 500;
+      height: 2px; width: 0%;
+      background: var(--accent);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+    #progress.on { opacity: 1; }
+
+    /* ─ Masthead ─ */
+    .masthead {
+      border-bottom: 1px solid var(--rule);
+      padding: 3rem 0 0;
+    }
+    .masthead-inner {
+      max-width: 760px; margin: 0 auto; padding: 0 2rem;
+    }
+
+    /* Eyebrow — tiny mono label above title */
+    .eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.6rem; letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--faint); margin-bottom: 0.9rem;
+      display: flex; align-items: center; gap: 0.55rem;
+    }
+    .eyebrow-sep {
+      display: inline-block; width: 16px; height: 1px;
+      background: var(--rule); flex-shrink: 0;
+    }
+
+    /* Page title */
+    h1 {
+      font-family: 'Newsreader', serif;
+      font-size: clamp(1.9rem, 4.5vw, 3rem);
+      font-weight: 300;
+      line-height: 1.16;
+      letter-spacing: -0.025em;
+      margin-bottom: 1rem;
+    }
+
+    /* Lede — subtitle below h1 */
+    .lede {
+      font-family: 'Helvetica Neue', sans-serif;
+      font-size: 1.5rem; font-weight: 300;
+      color: var(--mid); line-height: 1.7;
+      max-width: 520px; padding-bottom: 2rem;
+    }
+
+    /* ─ Sticky nav bar ─ */
+    .toc-bar {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(245,242,235,0.97);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--rule);
+    }
+    .toc-inner {
+      max-width: 760px; margin: 0 auto; padding: 0 2rem;
+      display: flex; align-items: stretch;
+      overflow-x: auto; scrollbar-width: none;
+      gap: 0;
+    }
+    .toc-inner::-webkit-scrollbar { display: none; }
+
+    /* Back link */
+    .nav-back {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--mid); text-decoration: none;
+      padding: 0 1rem 0 0; white-space: nowrap; flex-shrink: 0;
+      display: flex; align-items: center;
+      border-right: 1px solid var(--rule);
+      margin-right: 0.25rem;
+      transition: color 0.12s;
+      min-height: 38px;
+    }
+    .nav-back:hover { color: var(--accent); }
+
+    /* Section links */
+    .nav-section {
+      font-family: 'Helvetica Neue', sans-serif;
+      font-size: 0.71rem; color: var(--faint);
+      text-decoration: none;
+      padding: 0 0.55rem;
+      white-space: nowrap; flex-shrink: 0;
+      display: flex; align-items: center;
+      border-bottom: 2px solid transparent;
+      transition: color 0.12s, border-color 0.12s;
+      min-height: 38px;
+    }
+    .nav-section:hover { color: var(--mid); }
+    .nav-section.active { color: var(--ink); border-bottom-color: var(--ink); }
+
+    /* Home nav label */
+    .nav-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--faint); padding: 0; display: flex; align-items: center;
+      min-height: 38px;
+    }
+
+    /* ─ Main content area ─ */
+    main {
+      max-width: 760px; margin: 0 auto;
+      padding: 4rem 2rem 7rem;
+    }
+
+    /* ─ Prose container ─ */
+    .prose { max-width: 640px; }
+    .prose p { margin-bottom: 1.5rem; }
+
+    /* Drop cap — first letter of first paragraph */
+    .prose > p:first-of-type::first-letter {
+      font-size: 3.6em;
+      line-height: 0.8;
+      float: left;
+      margin: 0.05em 0.1em -0.05em 0;
+      font-family: 'Newsreader', serif;
+      font-weight: 300;
+      color: var(--accent);
+    }
+
+    /*
+     * HEADING HIERARCHY
+     * h2  — chapter title. Large, italic, anchors a whole section.
+     * h3  — sub-section. Smaller, upright, clearly subordinate.
+     * h4  — inline run-in label. Tiny caps.
+     */
+
+    /* h2: chapter-level, italic, large */
+    .prose h2 {
+      font-family: 'Newsreader', serif;
+      font-size: clamp(1.45rem, 3vw, 1.85rem);
+      font-weight: 300;
+      font-style: italic;
+      letter-spacing: -0.02em;
+      line-height: 1.22;
+      color: var(--ink);
+
+      margin-top: 4.5rem;
+      margin-bottom: 1.25rem;
+      padding-top: 3rem;
+      border-top: 1px solid var(--rule);
+      /* counter label injected via ::before */
+    }
+    .prose h2::before {
+      content: attr(data-section);
+      display: block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.56rem;
+      font-style: normal;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--faint);
+      margin-bottom: 0.6rem;
+    }
+
+    /* h3: sub-section, same family, upright, noticeably smaller than h2 */
+    .prose h3 {
+      font-family: 'Newsreader', serif;
+      font-size: 1.12rem;
+      font-weight: 400;
+      font-style: normal;
+      letter-spacing: -0.01em;
+      line-height: 1.35;
+      color: var(--ink);
+
+      margin-top: 2.5rem;
+      margin-bottom: 0.6rem;
+    }
+    /* Subtle left accent to visually anchor h3 under h2 */
+    .prose h3::before {
+      content: '';
+      display: inline-block;
+      width: 3px; height: 0.85em;
+      background: var(--rule);
+      border-radius: 1px;
+      margin-right: 0.6rem;
+      vertical-align: baseline;
+      position: relative; top: 0.08em;
+    }
+
+    /* h4: run-in section label, all-caps micro */
+    .prose h4 {
+      font-family: 'Helvetica Neue', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 500;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: var(--mid);
+      margin-top: 2rem;
+      margin-bottom: 0.4rem;
+    }
+
+    .prose strong { font-weight: 500; }
+    .prose em { font-style: italic; }
+
+    /* Blockquote */
+    .prose blockquote {
+      margin: 2.25rem 0;
+      padding: 1rem 1.5rem;
+      background: var(--accent-dim);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 4px 4px 0;
+    }
+    .prose blockquote p {
+      margin-bottom: 0;
+      font-size: 0.95rem; line-height: 1.7;
+      color: var(--mid);
+    }
+    .prose blockquote strong { color: var(--ink); }
+
+    /* Lists */
+    .prose ul, .prose ol { padding-left: 1.5rem; margin-bottom: 1.5rem; }
+    .prose li { margin-bottom: 0.4rem; }
+    .prose li::marker { color: var(--faint); }
+
+    /* Code */
+    .prose pre {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem; line-height: 1.65;
+      background: #131211; color: #C4BDB4;
+      padding: 1.25rem 1.5rem;
+      border-radius: 5px; border: 1px solid #252220;
+      overflow-x: auto; margin: 1.75rem 0;
+    }
+    .prose pre code { background: none; padding: 0; font-size: inherit; color: inherit; }
+    .prose code {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.8em;
+      background: #E8E3DA; color: #3A2A20;
+      padding: 0.15em 0.4em; border-radius: 3px;
+    }
+
+    /* Tables */
+    .prose table {
+      width: 100%; border-collapse: collapse; margin: 2rem 0;
+      font-family: 'Helvetica Neue', sans-serif; font-size: 0.84rem;
+      display: block; overflow-x: auto;
+    }
+    .prose th {
+      text-align: left; font-weight: 500;
+      font-size: 0.66rem; letter-spacing: 0.07em; text-transform: uppercase;
+      color: var(--mid); padding: 0.5rem 0.9rem;
+      border-bottom: 2px solid var(--rule); white-space: nowrap;
+    }
+    .prose td {
+      padding: 0.6rem 0.9rem;
+      border-bottom: 1px solid var(--rule);
+      vertical-align: top;
+    }
+    .prose tr:last-child td { border-bottom: none; }
+    .prose tbody tr:hover td { background: rgba(0,0,0,0.02); }
+
+    /* Rules & links */
+    .prose hr { border: none; border-top: 1px solid var(--rule); margin: 3.5rem 0; }
+    .prose a {
+      color: var(--accent);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-color: rgba(139,37,0,0.28);
+      transition: text-decoration-color 0.12s;
+    }
+    .prose a:hover { text-decoration-color: var(--accent); }
+    /* Post-footer italic note */
+    .prose hr + p { color: var(--mid); font-size: 0.9rem; font-style: italic; }
+
+    /* ─ Widgets ─ */
+    .widget {
+      margin: 2.5rem 0;
+      border: 1px solid var(--rule);
+      border-radius: 5px;
+      overflow: hidden;
+      background: var(--warm);
+    }
+    .widget-header {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--mid); background: #EEE9E1;
+      padding: 0.55rem 1.25rem;
+      border-bottom: 1px solid var(--rule);
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 0.5rem;
+    }
+    .widget-header .hint { color: var(--faint); font-size: 0.57rem; }
+    .widget-body { padding: 1.25rem; }
+
+    /* ─ Tooltip ─ */
+    .d3-tooltip {
+      position: fixed; pointer-events: none;
+      font-family: 'JetBrains Mono', monospace; font-size: 0.65rem;
+      background: #131211; color: #C4BDB4;
+      padding: 0.4rem 0.8rem; border-radius: 4px;
+      border: 1px solid #2A2622;
+      opacity: 0; transition: opacity 0.07s;
+      z-index: 9999; max-width: 250px; line-height: 1.55;
+    }
+
+    /* ─ Gate diagram ─ */
+    .gate-wrap {
+      background: #0E0D0C; border-radius: 3px;
+      padding: 1.5rem 1.25rem; font-family: 'JetBrains Mono', monospace;
+    }
+    .gate-layer-row {
+      display: grid; grid-template-columns: 1fr auto 1fr;
+      align-items: center; gap: 0.75rem; min-height: 1rem;
+    }
+    .gate-layer-label { font-size: 0.59rem; color: #7A706A; text-align: right; line-height: 1.3; }
+    .gate-layer-label .sub { color: #3A3028; font-size: 0.52rem; display: block; margin-top: 1px; }
+    .gate-layer-bar { position: relative; border-radius: 2px; min-width: 80px; width: 100%; }
+    .gate-layer-note { font-size: 0.52rem; color: #423830; line-height: 1.3; }
+    .gate-dashed { border-top: 1px dashed #252018; margin: 4px 0; }
+    .gate-annotation { text-align: center; color: rgba(130,110,90,0.5); font-size: 0.56rem; font-style: italic; padding: 2px 0; }
+    .gate-beam-wrap { display: flex; justify-content: center; gap: 28%; margin-top: 0.6rem; }
+    .gate-beam { width: 2px; height: 20px; background: linear-gradient(to top, rgba(255,240,140,0.55), transparent); border-radius: 1px; }
+    @keyframes beam-pulse { 0%,100%{opacity:0.3} 50%{opacity:0.85} }
+    .gate-beam { animation: beam-pulse 2.4s ease-in-out infinite; }
+    .gate-beam:nth-child(2) { animation-delay: 0.8s; }
+    .gate-beam:nth-child(3) { animation-delay: 1.6s; }
+
+    /* ─ Cost widget ─ */
+    .cost-layout { display: grid; grid-template-columns: auto 1fr; gap: 1.75rem; align-items: start; }
+    @media (max-width: 460px) {
+      .cost-layout { grid-template-columns: 1fr; }
+      .cost-donut-wrap { display: flex; justify-content: center; }
+    }
+    .cost-legend-row { display: flex; align-items: center; gap: 0.5rem; padding: 0.22rem 0; }
+    .cost-legend-swatch { width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0; }
+    .cost-legend-label { flex: 1; font-family: 'Helvetica Neue', sans-serif; font-size: 0.78rem; color: var(--mid); }
+    .cost-legend-value { font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; color: var(--ink); }
+    .cost-total-row {
+      display: flex; align-items: center; gap: 0.5rem;
+      padding: 0.4rem 0 0; margin-top: 0.3rem;
+      border-top: 1px solid var(--rule);
+      font-family: 'Helvetica Neue', sans-serif; font-size: 0.78rem; font-weight: 500;
+    }
+    .cost-total-row .cost-legend-value { color: var(--accent); }
+
+    /* ─ Home page ─ */
+    .home-header { padding-bottom: 1.5rem; }
+    .home-title {
+      font-family: 'Newsreader', serif;
+      font-size: clamp(2.4rem, 5.5vw, 3.6rem);
+      font-weight: 300; line-height: 1.13;
+      letter-spacing: -0.03em;
+      margin-bottom: 0.6rem;
+    }
+    .home-sub {
+      font-family: 'Helvetica Neue', sans-serif;
+      font-size: 1.2rem; font-weight: 300;
+      color: var(--mid); line-height: 1.65; max-width: 420px;
+    }
+
+    .post-list { border-top: 1px solid var(--rule); margin-top: 2.5rem; }
+    .post-card {
+      border-bottom: 1px solid var(--rule);
+      padding: 1.75rem 0;
+      cursor: pointer;
+      display: grid; grid-template-columns: 1fr 1.5rem;
+      gap: 0 1rem; align-items: center;
+    }
+    .post-card-body { min-width: 0; }
+    .post-card-arrow {
+      font-size: 0.85rem; color: var(--rule);
+      transition: color 0.12s, transform 0.12s;
+      flex-shrink: 0; text-align: right;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .post-card:hover .post-card-title { color: var(--accent); }
+    .post-card:hover .post-card-arrow { color: var(--accent); transform: translateX(4px); }
+    .post-card-meta {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--faint); margin-bottom: 0.4rem;
+    }
+    .post-card-title {
+      font-family: 'Newsreader', serif;
+      font-size: 1.3rem; font-weight: 300;
+      line-height: 1.28; letter-spacing: -0.01em;
+      color: var(--ink); margin-bottom: 0.45rem;
+      transition: color 0.12s;
+    }
+    .post-card-lede {
+      font-family: 'Helvetica Neue', sans-serif;
+      font-size: 0.84rem; color: var(--mid); line-height: 1.6;
+    }
+    .post-card-tags { margin-top: 0.65rem; display: flex; gap: 0.4rem; flex-wrap: wrap; }
+    .tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.55rem; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--faint); border: 1px solid var(--rule);
+      padding: 0.1em 0.45em; border-radius: 2px;
+    }
+
+    /* ─ 404 ─ */
+    .not-found { text-align: center; padding: 6rem 0; }
+    .not-found-code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 5rem; font-weight: 400; letter-spacing: -0.08em;
+      color: var(--rule); line-height: 1; display: block; margin-bottom: 1.5rem;
+    }
+    .not-found p { font-family: 'Helvetica Neue', sans-serif; font-size: 0.9rem; color: var(--mid); }
+    .not-found a { color: var(--accent); cursor: pointer; }
+
+    /* ─ Footer ─ */
+    footer { border-top: 1px solid var(--rule); padding: 2rem 0; }
+    .footer-inner {
+      max-width: 760px; margin: 0 auto; padding: 0 2rem;
+      font-family: 'Helvetica Neue', sans-serif; font-size: 0.75rem; color: var(--faint);
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 0.5rem;
+    }
+
+    /* ─ Mobile ─ */
+    @media (max-width: 580px) {
+      body { font-size: 17px; }
+      .masthead-inner, .toc-inner, main, .footer-inner { padding-left: 1.25rem; padding-right: 1.25rem; }
+      h1 { font-size: 1.85rem; }
+      .home-title { font-size: 2.2rem; }
+      .prose h2 { font-size: 1.35rem; margin-top: 3rem; padding-top: 2.25rem; }
+      .prose h3 { font-size: 1rem; }
+      .prose > p:first-of-type::first-letter { font-size: 3em; }
+      .post-card { grid-template-columns: 1fr; }
+      .post-card-arrow { display: none; }
+      .widget-body { padding: 1rem; }
+    }
+  </style>
+</head>
+<body>
+<div id="progress"></div>
+<div id="app"></div>
+<div class="d3-tooltip" id="tip"></div>
+
+<script>
+// ─────────────────────────────────────────────
+//  Cache — in-memory store for fetched content
+// ─────────────────────────────────────────────
+const cache = new Map();
+
+async function cachedFetch(url, parser) {
+  if (cache.has(url)) return cache.get(url);
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(r.status);
+  const data = await parser(r);
+  cache.set(url, data);
+  return data;
+}
+const fetchJSON = url => cachedFetch(url, r => r.json());
+const fetchMD   = url => cachedFetch(url, r => r.text());
+
+// Preload a URL into cache silently (fire-and-forget)
+function preload(url, parser) {
+  if (!cache.has(url)) {
+    const idle = window.requestIdleCallback || (fn => setTimeout(fn, 100));
+    idle(() => cachedFetch(url, parser).catch(() => {}));
+  }
+}
+
+// ─────────────────────────────────────────────
+//  Router
+// ─────────────────────────────────────────────
+const router = {
+  routes: [],
+  add(pattern, handler) { this.routes.push({ pattern, handler }); },
+  match(path) {
+    for (const r of this.routes) {
+      const keys = [];
+      const re = r.pattern
+        .replace(/:([^/]+)/g, (_, k) => { keys.push(k); return '([^/]+)'; })
+        .replace(/\*/g, '(.*)');
+      const m = path.match(new RegExp(`^${re}$`));
+      if (m) {
+        const params = {};
+        keys.forEach((k, i) => params[k] = decodeURIComponent(m[i + 1]));
+        return { handler: r.handler, params };
+      }
+    }
+    return null;
+  },
+  async navigate(path, push = true) {
+    if (push) history.pushState({}, '', path);
+    const app = document.getElementById('app');
+    // Only fade if content is already visible (not first load)
+    const isFirstLoad = !app.innerHTML;
+    if (!isFirstLoad) {
+      app.classList.add('fading');
+      await new Promise(r => setTimeout(r, 80));
+    }
+    const match = this.match(path);
+    if (match) await match.handler(match.params);
+    else await renderNotFound();
+    app.classList.remove('fading');
+    if (push) window.scrollTo(0, 0);
+  }
+};
+
+window.addEventListener('popstate', () => router.navigate(location.pathname, false));
+document.addEventListener('click', e => {
+  const a = e.target.closest('a[data-route]');
+  if (a) { e.preventDefault(); router.navigate(a.getAttribute('href')); }
+});
+
+// ─────────────────────────────────────────────
+//  Marked config (clean — no heading overrides)
+// ─────────────────────────────────────────────
+marked.setOptions({
+  gfm: true,
+  breaks: false,
+  headerIds: false,   // we will generate our own ids
+  mangle: false
+});
+
+// Convert:
+//
+// ## Label
+// ### Section title
+//
+// Into:
+//
+// <div class="section-eyebrow">Label</div>
+// <h2 data-section="Section 01 — Section title">Section title</h2>
+//
+function transformSections(html) {
+  const container = document.createElement('div');
+  container.innerHTML = html;
+
+  let sectionCount = 0;
+  let pendingLabel = null;
+
+  const nodes = [...container.children];
+
+  for (let node of nodes) {
+
+    // Ignore h1 (title already rendered separately)
+    if (node.tagName === 'H1') {
+      node.remove();
+      continue;
+    }
+
+    // ## becomes eyebrow label (store only)
+    if (node.tagName === 'H2') {
+      pendingLabel = node.textContent.trim();
+      node.remove();
+      continue;
+    }
+
+    // ### becomes actual section
+    if (node.tagName === 'H3') {
+      sectionCount++;
+
+      const text = node.textContent.trim();
+
+      const id = text
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .trim();
+
+      const wrapper = document.createElement('div');
+
+      // Eyebrow label above section
+      if (pendingLabel) {
+        const eyebrow = document.createElement('div');
+        eyebrow.className = 'section-eyebrow';
+        eyebrow.textContent = pendingLabel;
+        wrapper.appendChild(eyebrow);
+      }
+
+      const h2 = document.createElement('h2');
+      h2.id = id;
+      h2.setAttribute(
+        'data-section',
+        `Section ${String(sectionCount).padStart(2, '0')} — ${text}`
+      );
+      h2.textContent = text;
+
+      wrapper.appendChild(h2);
+
+      node.replaceWith(wrapper);
+
+      pendingLabel = null;
+    }
+  }
+
+  return container.innerHTML;
+}
+
+// ─────────────────────────────────────────────
+//  Frontmatter
+// ─────────────────────────────────────────────
+function parseFrontmatter(raw) {
+  const m = raw.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
+  if (!m) return { fm: {}, body: raw };
+  const fm = {};
+  m[1].split('\n').forEach(line => {
+    const [k, ...rest] = line.split(':');
+    if (k.trim()) fm[k.trim()] = rest.join(':').trim();
+  });
+  return { fm, body: m[2] };
+}
+
+// ─────────────────────────────────────────────
+//  TOC (uses transformed h2s only)
+// ─────────────────────────────────────────────
+function buildTOC(html) {
+  const div = document.createElement('div');
+  div.innerHTML = html;
+
+  return Array.from(div.querySelectorAll('h2')).map(h => ({
+    text: h.textContent,
+    id: h.id
+  }));
+}
+
+// ─────────────────────────────────────────────
+//  Scroll spy
+// ─────────────────────────────────────────────
+function setupScrollSpy() {
+  const links = document.querySelectorAll('.toc-inner a[href^="#"]');
+  if (!links.length) return;
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const al = document.querySelector(`.toc-inner a[href="#${e.target.id}"]`);
+        if (al) al.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-15% 0px -75% 0px' });
+  Array.from(links)
+    .map(l => document.querySelector(l.getAttribute('href')))
+    .filter(Boolean)
+    .forEach(h => obs.observe(h));
+}
+
+// ─────────────────────────────────────────────
+//  Shell
+// ─────────────────────────────────────────────
+function renderShell({ masthead, nav, content, isPost = false }) {
+  document.getElementById('app').innerHTML = `
+    <div class="masthead"><div class="masthead-inner">${masthead}</div></div>
+    <nav class="toc-bar"><div class="toc-inner">${nav}</div></nav>
+    <main>${content}</main>
+    <footer><div class="footer-inner">
+      <span>Matthieu · Build Log</span>
+      <span>Film preservation &amp; hardware notes</span>
+    </div></footer>`;
+
+  document.querySelectorAll('pre code').forEach(el => hljs.highlightElement(el));
+  setupScrollSpy();
+
+  // Reading progress bar — only on post pages
+  const prog = document.getElementById('progress');
+
+  // Clean up any previous scroll handler
+  window.removeEventListener('scroll', window._scrollHandler);
+
+  if (isPost) {
+    prog.classList.add('on');
+
+    window._scrollHandler = () => {
+      const el = document.documentElement;
+      const pct = el.scrollTop / (el.scrollHeight - el.clientHeight);
+      prog.style.width = (Math.min(pct, 1) * 100) + '%';
+    };
+
+    window.addEventListener('scroll', window._scrollHandler, { passive: true });
+    window._scrollHandler();
+  } else {
+    prog.classList.remove('on');
+    prog.style.width = '0%';
+  }
+}
+
+// ─────────────────────────────────────────────
+//  Tooltip
+// ─────────────────────────────────────────────
+const tip = document.getElementById('tip');
+function showTip(html, event) {
+  tip.innerHTML = html;
+  tip.style.opacity = '1';
+  const x = Math.min(event.clientX + 14, window.innerWidth - 260);
+  const y = Math.max(event.clientY - 36, 4);
+  tip.style.left = x + 'px';
+  tip.style.top  = y + 'px';
+}
+function hideTip() { tip.style.opacity = '0'; }
+
+// ─────────────────────────────────────────────
+//  Wavelength → RGB (Bruton's algorithm)
+// ─────────────────────────────────────────────
+function nm2rgb(wl) {
+  let r, g, b;
+  if      (wl < 380) { r=0.6; g=0; b=0.8; }
+  else if (wl < 440) { r=(440-wl)/60; g=0; b=1; }
+  else if (wl < 490) { r=0; g=(wl-440)/50; b=1; }
+  else if (wl < 510) { r=0; g=1; b=(510-wl)/20; }
+  else if (wl < 580) { r=(wl-510)/70; g=1; b=0; }
+  else if (wl < 645) { r=1; g=(645-wl)/65; b=0; }
+  else if (wl < 780) { r=1; g=0; b=0; }
+  else               { r=0.5; g=0; b=0; }
+  const f = wl<420 ? 0.3+0.7*(wl-380)/40 : wl>700 ? 0.3+0.7*(780-wl)/80 : 1;
+  const γ = 0.8;
+  return [
+    Math.round(255 * Math.pow(Math.max(0,r)*f, γ)),
+    Math.round(255 * Math.pow(Math.max(0,g)*f, γ)),
+    Math.round(255 * Math.pow(Math.max(0,b)*f, γ))
+  ];
+}
+function nm2css(wl) {
+  if (wl > 780) return 'rgba(160,60,60,0.9)';
+  if (wl < 380) return 'rgba(130,80,200,0.9)';
+  const [r,g,b] = nm2rgb(wl);
+  return `rgb(${r},${g},${b})`;
+}
+
+// ─────────────────────────────────────────────
+//  Responsive SVG helper — redraws on resize
+// ─────────────────────────────────────────────
+function makeResponsiveSVG(containerId, drawFn) {
+  let ro;
+  const draw = () => {
+    const container = document.getElementById(containerId);
+    if (!container) { ro && ro.disconnect(); return; }
+    const W = container.clientWidth;
+    if (W < 10) return;
+    container.innerHTML = '';
+    drawFn(container, W);
+  };
+  draw();
+  ro = new ResizeObserver(() => draw());
+  const el = document.getElementById(containerId);
+  if (el) ro.observe(el.parentElement || el);
+}
+
+// ─────────────────────────────────────────────
+//  WIDGET: Dye Fading
+// ─────────────────────────────────────────────
+function widgetDyeFading(el) {
+  el.innerHTML = `
+    <div class="widget">
+      <div class="widget-header">
+        <span>Typical fading by dye layer</span>
+        <span class="hint">hover for detail</span>
+      </div>
+      <div class="widget-body"><div id="w-dye"></div></div>
+    </div>`;
+
+  const data = [
+    { label: 'Cyan',    remaining: 0.15, color: '#0E7490', note: '70–90% loss. Probed at 625nm (red).' },
+    { label: 'Magenta', remaining: 0.55, color: '#A21CAF', note: '30–50% loss. Probed at 525nm (green).' },
+    { label: 'Yellow',  remaining: 0.88, color: '#CA8A04', note: '5–20% loss. Probed at 450nm (blue).' },
+  ];
+
+  makeResponsiveSVG('w-dye', (container, W) => {
+    const isMobile = W < 400;
+    const ml = isMobile ? 60 : 75;
+    const mr = isMobile ? 10 : 110;
+    const rowH = 48;
+    const margin = { top: 8, right: mr, bottom: 28, left: ml };
+    const H = data.length * rowH + margin.top + margin.bottom;
+    const innerW = W - margin.left - margin.right;
+
+    const svg = d3.select(container).append('svg')
+      .attr('width', W).attr('height', H);
+    const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
+    const x = d3.scaleLinear().domain([0,1]).range([0, innerW]);
+
+    const rows = g.selectAll('g.row').data(data).join('g')
+      .attr('class','row')
+      .attr('transform', (_,i) => `translate(0,${i*rowH+4})`);
+
+    // Left label
+    rows.append('text')
+      .attr('x', -8).attr('y', 12).attr('text-anchor','end')
+      .attr('fill','#6B635A').attr('font-size', isMobile ? '0.68rem' : '0.75rem')
+      .attr('font-family','Helvetica Neue,sans-serif').text(d => d.label);
+
+    // Track
+    rows.append('rect')
+      .attr('y',0).attr('height',10).attr('width',innerW).attr('rx',5)
+      .attr('fill','#DDD8D1');
+
+    // Fill bar
+    rows.append('rect')
+      .attr('y',0).attr('height',10).attr('rx',5)
+      .attr('fill', d => d.color).attr('width',0)
+      .on('mousemove', (ev,d) => showTip(`<strong>${d.label}</strong>: ${Math.round(d.remaining*100)}% remaining<br><span style="font-size:0.62rem;color:#7A706A">${d.note}</span>`, ev))
+      .on('mouseleave', hideTip)
+      .transition().duration(800).delay((_,i)=>i*120).ease(d3.easeCubicOut)
+      .attr('width', d => x(d.remaining));
+
+    // Pct label (desktop only, right of bar)
+    if (!isMobile) {
+      rows.append('text')
+        .attr('y',9).attr('font-size','0.65rem')
+        .attr('font-family','JetBrains Mono,monospace')
+        .attr('fill','#6B635A').attr('opacity',0)
+        .attr('x', d => x(d.remaining) + 7)
+        .text(d => `${Math.round(d.remaining*100)}%`)
+        .transition().duration(400).delay((_,i)=>i*120+700).attr('opacity',1);
+
+      rows.append('text')
+        .attr('y',9).attr('font-size','0.62rem')
+        .attr('font-family','JetBrains Mono,monospace')
+        .attr('fill','#C4BDB4').attr('text-anchor','end')
+        .attr('x', innerW + mr - 4)
+        .text(d => `${Math.round((1-d.remaining)*100)}% lost`);
+    }
+
+    // Axis
+    const ax = g.append('g').attr('transform',`translate(0,${data.length*rowH+4})`);
+    [0, 0.5, 1].forEach(v => {
+      ax.append('line').attr('x1',x(v)).attr('x2',x(v)).attr('y1',0).attr('y2',5)
+        .attr('stroke','#C4BDB4').attr('stroke-width',1);
+      ax.append('text').attr('x',x(v)).attr('y',16).attr('text-anchor','middle')
+        .attr('fill','#C4BDB4').attr('font-size','0.6rem')
+        .attr('font-family','JetBrains Mono,monospace')
+        .text(v===0?'gone':v===1?'intact':`${v*100}%`);
+    });
+  });
+}
+
+// ─────────────────────────────────────────────
+//  WIDGET: Spectral Channels
+// ─────────────────────────────────────────────
+function widgetSpectralChannels(el) {
+  el.innerHTML = `
+    <div class="widget">
+      <div class="widget-header">
+        <span>Spectral channels — LED emission bands</span>
+        <span class="hint">hover channels</span>
+      </div>
+      <div class="widget-body" style="padding:1rem 1.25rem 1.25rem"><div id="w-spec"></div></div>
+    </div>`;
+
+  const channels = [
+    { nm:365, label:'UV',       purpose:'Fungus & mold mapping (experimental)',  dye:null,      σ:10 },
+    { nm:450, label:'Blue',     purpose:'Yellow dye absorption peak',            dye:'Yellow',  σ:14 },
+    { nm:525, label:'Green',    purpose:'Magenta dye',                          dye:'Magenta', σ:16 },
+    { nm:580, label:'Yellow',   purpose:'Faded cyan recovery — long tail',       dye:'Cyan',    σ:14 },
+    { nm:625, label:'Red',      purpose:'Cyan dye absorption peak',             dye:'Cyan',    σ:14 },
+    { nm:660, label:'Deep red', purpose:'Beyond cyan — reference baseline',      dye:null,      σ:12 },
+    { nm:850, label:'IR',       purpose:'Dust & scratch mask only',             dye:null,      σ:20 },
+  ];
+
+  const gauss = (nm, σ) => x => Math.exp(-0.5*((x-nm)/σ)**2);
+
+  makeResponsiveSVG('w-spec', (container, W) => {
+    const isMobile = W < 420;
+    const margin = { top: isMobile?24:28, right:12, bottom: isMobile?32:38, left: isMobile?30:44 };
+    const H = isMobile ? 160 : 200;
+    const iW = W - margin.left - margin.right;
+    const iH = H - margin.top - margin.bottom;
+    const nmMin = 330, nmMax = 900;
+
+    const svg = d3.select(container).append('svg').attr('width',W).attr('height',H);
+    const g = svg.append('g').attr('transform',`translate(${margin.left},${margin.top})`);
+
+    const x = d3.scaleLinear().domain([nmMin,nmMax]).range([0,iW]);
+    const y = d3.scaleLinear().domain([0,1]).range([iH,0]);
+
+    // Spectrum gradient background
+    const defs = svg.append('defs');
+    const grad = defs.append('linearGradient').attr('id','sg-'+Math.random().toString(36).slice(2))
+      .attr('x1','0%').attr('x2','100%');
+    for (let i=0; i<=80; i++) {
+      const nm = nmMin + (nmMax-nmMin)*(i/80);
+      const [r2,g2,b2] = nm2rgb(nm);
+      const a = nm<380||nm>780 ? 0.12 : 0.18;
+      grad.append('stop').attr('offset',`${(i/80)*100}%`)
+        .attr('stop-color',`rgba(${r2},${g2},${b2},${a})`);
+    }
+    const gradId = grad.attr('id');
+
+    g.append('rect').attr('width',iW).attr('height',iH).attr('rx',3)
+      .attr('fill',`url(#${gradId})`);
+
+    // Grid
+    [0.5,1].forEach(v =>
+      g.append('line').attr('x1',0).attr('x2',iW).attr('y1',y(v)).attr('y2',y(v))
+        .attr('stroke','rgba(200,190,180,0.15)').attr('stroke-dasharray','3,4'));
+
+    // Draw each channel
+    const nPts = 200;
+    channels.forEach(ch => {
+      const col = nm2css(ch.nm);
+      const pts = d3.range(nPts).map(i => {
+        const nm = nmMin + (nmMax-nmMin)*(i/(nPts-1));
+        return [nm, gauss(ch.nm, ch.σ)(nm)];
+      });
+
+      const area = d3.area().x(d=>x(d[0])).y0(iH).y1(d=>y(d[1])).curve(d3.curveBasis);
+      const line = d3.line().x(d=>x(d[0])).y(d=>y(d[1])).curve(d3.curveBasis);
+      const cls = `sc-${ch.nm}`;
+
+      g.append('path').datum(pts).attr('d',area)
+        .attr('fill',col).attr('opacity',0.16).attr('class','sc-area '+cls);
+      g.append('path').datum(pts).attr('d',line)
+        .attr('fill','none').attr('stroke',col).attr('stroke-width',1.5)
+        .attr('opacity',0.8).attr('class','sc-line '+cls);
+
+      // nm label above peak
+      const px = x(ch.nm);
+      if (!isMobile || [450,525,625,850].includes(ch.nm)) {
+        g.append('text').attr('x',px).attr('y',-5)
+          .attr('text-anchor','middle').attr('fill',col)
+          .attr('font-size',isMobile?'0.52rem':'0.58rem')
+          .attr('font-family','JetBrains Mono,monospace')
+          .attr('opacity', ch.nm>700?0.55:0.85)
+          .text(ch.nm+'nm');
+      }
+
+      // Hover zone
+      g.append('rect')
+        .attr('x',px-15).attr('y',0).attr('width',30).attr('height',iH)
+        .attr('fill','transparent').style('cursor','crosshair')
+        .on('mousemove', ev => {
+          svg.selectAll('.sc-area').attr('opacity',0.05);
+          svg.selectAll('.sc-line').attr('opacity',0.2).attr('stroke-width',1.5);
+          svg.selectAll('.'+cls+'.sc-area').attr('opacity',0.4);
+          svg.selectAll('.'+cls+'.sc-line').attr('opacity',1).attr('stroke-width',2.5);
+          showTip(`<strong>${ch.nm}nm — ${ch.label}</strong><br>${ch.purpose}${ch.dye?`<br><span style="color:#7A706A;font-size:0.62rem">Probes: ${ch.dye} dye</span>`:''}`, ev);
+        })
+        .on('mouseleave', () => {
+          svg.selectAll('.sc-area').attr('opacity',0.16);
+          svg.selectAll('.sc-line').attr('opacity',0.8).attr('stroke-width',1.5);
+          hideTip();
+        });
+    });
+
+    // X axis
+    const tickVals = isMobile ? [380,525,625,780] : [380,450,525,580,625,700,780];
+    g.append('g').attr('transform',`translate(0,${iH})`)
+      .call(d3.axisBottom(x).tickValues(tickVals).tickFormat(d=>d+'nm').tickSize(4))
+      .call(ax => ax.select('.domain').attr('stroke','#C4BDB4'))
+      .call(ax => ax.selectAll('text').attr('fill','#6B635A').attr('font-size',isMobile?'0.55rem':'0.62rem').attr('font-family','JetBrains Mono,monospace'))
+      .call(ax => ax.selectAll('line').attr('stroke','#C4BDB4'));
+
+    if (!isMobile) {
+      g.append('text').attr('transform','rotate(-90)').attr('x',-iH/2).attr('y',-32)
+        .attr('text-anchor','middle').attr('fill','#6B635A').attr('font-size','0.62rem')
+        .attr('font-family','Helvetica Neue,sans-serif').text('Relative intensity');
+    }
+
+    g.attr('opacity',0).transition().duration(500).attr('opacity',1);
+  });
+}
+
+// ─────────────────────────────────────────────
+//  WIDGET: Gate diagram (HTML, not SVG)
+// ─────────────────────────────────────────────
+function widgetGateDiagram(el) {
+  const layers = [
+    { type:'endpoint', label:'Camera', sub:'sensor looking down' },
+    { type:'gap', h:10 },
+    { type:'dashed' },
+    { type:'gap', h:8 },
+    { type:'layer',  label:'ANR glass',      sub:'3mm · textured face',            bg:'rgba(180,210,255,0.13)', border:'rgba(180,210,255,0.35)', h:20 },
+    { type:'annotation', text:'↓  gentle spring pressure  ↓' },
+    { type:'layer',  label:'Film',           sub:'emulsion side up · 0.13mm',       bg:'linear-gradient(90deg,rgba(100,60,25,0.8),rgba(150,90,40,0.7))', border:'rgba(180,130,70,0.5)', h:9 },
+    { type:'layer',  label:'FilmGuard',      sub:'thin lubricant · base side',      bg:'rgba(90,150,200,0.12)', border:'rgba(90,150,200,0.28)', h:5 },
+    { type:'layer',  label:'Float glass',    sub:'3mm · optical quality',           bg:'rgba(180,210,255,0.08)', border:'rgba(180,210,255,0.28)', h:20 },
+    { type:'layer',  label:'Integrating chamber', sub:'BaSO₄ coated · >99% reflectance', bg:'rgba(255,240,180,0.07)', border:'rgba(255,240,180,0.2)', h:14 },
+    { type:'gap', h:6 },
+    { type:'dashed' },
+    { type:'gap', h:6 },
+    { type:'endpoint', label:'LED + fiber bundle', sub:'fused silica · UV–IR transparent' },
+    { type:'beams' },
+  ];
+
+  let html = `
+    <div class="widget">
+      <div class="widget-header">Gate cross-section — pressure gate design</div>
+      <div class="widget-body" style="padding:1rem">
+        <div class="gate-wrap">`;
+
+  layers.forEach(layer => {
+    if (layer.type === 'endpoint') {
+      html += `
+        <div class="gate-layer-row">
+          <div class="gate-layer-label" style="color:#4A4240">${layer.label}<span class="sub">${layer.sub}</span></div>
+          <div style="flex:1;min-width:60px;border-top:1.5px dashed #2A2420;opacity:0.7"></div>
+          <div class="gate-layer-note" style="color:#3D3530"></div>
+        </div>`;
+    } else if (layer.type === 'dashed') {
+      html += `<div class="gate-dashed"></div>`;
+    } else if (layer.type === 'gap') {
+      html += `<div style="height:${layer.h}px"></div>`;
+    } else if (layer.type === 'annotation') {
+      html += `<div class="gate-annotation">${layer.text}</div>`;
+    } else if (layer.type === 'layer') {
+      const isGrad = layer.bg.startsWith('linear');
+      const bgStyle = isGrad ? `background:${layer.bg}` : `background:${layer.bg}`;
+      html += `
+        <div class="gate-layer-row" style="margin-bottom:3px">
+          <div class="gate-layer-label">${layer.label}<span class="sub">${layer.sub}</span></div>
+          <div class="gate-layer-bar" style="${bgStyle};border:1px solid ${layer.border};height:${layer.h}px"></div>
+          <div class="gate-layer-note"></div>
+        </div>`;
+    } else if (layer.type === 'beams') {
+      html += `
+        <div class="gate-beam-wrap">
+          <div class="gate-beam"></div>
+          <div class="gate-beam"></div>
+          <div class="gate-beam"></div>
+        </div>`;
+    }
+  });
+
+  html += `</div></div></div>`;
+  el.innerHTML = html;
+
+  // Animate layers in
+  const bars = el.querySelectorAll('.gate-layer-bar');
+  bars.forEach((bar, i) => {
+    bar.style.opacity = '0';
+    bar.style.transform = 'scaleX(0.3)';
+    bar.style.transformOrigin = 'left';
+    bar.style.transition = `opacity 0.4s ${i*0.07}s ease, transform 0.4s ${i*0.07}s ease`;
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      bar.style.opacity = '1';
+      bar.style.transform = 'scaleX(1)';
+    }));
+  });
+}
+
+// ─────────────────────────────────────────────
+//  WIDGET: Cost Breakdown
+// ─────────────────────────────────────────────
+function widgetCostBreakdown(el) {
+  el.innerHTML = `
+    <div class="widget">
+      <div class="widget-header">
+        <span>Build cost breakdown</span>
+        <span class="hint">hover to explore</span>
+      </div>
+      <div class="widget-body">
+        <div class="cost-layout">
+          <div class="cost-donut-wrap"><div id="w-cost-donut"></div></div>
+          <div id="w-cost-legend"></div>
+        </div>
+      </div>
+    </div>`;
+
+  const items = [
+    { label:'Camera (IMX183)',    cost:2800, color:'#8B2500' },
+    { label:'Light engine',       cost:800,  color:'#B35A00' },
+    { label:'Mechanical',         cost:800,  color:'#6B4A2E' },
+    { label:'Motion control',     cost:600,  color:'#3D5A50' },
+    { label:'Electronics',        cost:500,  color:'#4A5568' },
+    { label:'Gate optics',        cost:400,  color:'#5C4A6E' },
+    { label:'Storage (SSD RAID)', cost:400,  color:'#3A6B4A' },
+    { label:'Optics (Rodagon)',   cost:350,  color:'#7A6A30' },
+  ];
+  const total = items.reduce((s,d)=>s+d.cost,0);
+
+  // Donut
+  const size = 180;
+  const R = size/2, ri = R*0.5;
+  const svgD = d3.select('#w-cost-donut').append('svg')
+    .attr('width',size).attr('height',size);
+
+  const pie = d3.pie().value(d=>d.cost).sort(null).padAngle(0.02);
+  const arc = d3.arc().innerRadius(ri).outerRadius(R-2);
+  const arcH = d3.arc().innerRadius(ri).outerRadius(R+7);
+
+  svgD.append('g').attr('transform',`translate(${R},${R})`)
+    .selectAll('path').data(pie(items)).join('path')
+    .attr('fill', d=>d.data.color).attr('d',arc).attr('opacity',0)
+    .style('cursor','pointer')
+    .on('mousemove', (ev,d) => showTip(`${d.data.label}<br><strong>EUR ${d.data.cost.toLocaleString()}</strong><br><span style="color:#7A706A;font-size:0.62rem">${Math.round(d.data.cost/total*100)}% of build</span>`, ev))
+    .on('mouseenter', function(_,d) { d3.select(this).raise().transition().duration(100).attr('d',arcH).attr('opacity',1); })
+    .on('mouseleave', function() { d3.select(this).transition().duration(100).attr('d',arc).attr('opacity',0.85); hideTip(); })
+    .transition().duration(600).delay((_,i)=>i*55).ease(d3.easeCubicOut).attr('opacity',0.85);
+
+  // Center label
+  const cg = svgD.append('g').attr('transform',`translate(${R},${R})`);
+  cg.append('text').attr('text-anchor','middle').attr('y',-3)
+    .attr('fill','#1A1714').attr('font-size','1rem')
+    .attr('font-family','JetBrains Mono,monospace').attr('font-weight','500').text('~€7k');
+  cg.append('text').attr('text-anchor','middle').attr('y',14)
+    .attr('fill','#6B635A').attr('font-size','0.55rem')
+    .attr('font-family','Helvetica Neue,sans-serif').text('total build');
+
+  // Legend (HTML)
+  const legend = document.getElementById('w-cost-legend');
+  items.forEach((item, i) => {
+    const row = document.createElement('div');
+    row.className = 'cost-legend-row';
+    row.style.opacity = '0';
+    row.style.transition = `opacity 0.3s ${i*0.04+0.2}s`;
+    row.innerHTML = `
+      <div class="cost-legend-swatch" style="background:${item.color}"></div>
+      <span class="cost-legend-label">${item.label}</span>
+      <span class="cost-legend-value">€${item.cost.toLocaleString()}</span>`;
+    legend.appendChild(row);
+    requestAnimationFrame(() => requestAnimationFrame(() => row.style.opacity = '1'));
+  });
+  const tr = document.createElement('div');
+  tr.className = 'cost-total-row';
+  tr.innerHTML = `<span style="flex:1">Total</span><span class="cost-legend-value">€${total.toLocaleString()}</span>`;
+  legend.appendChild(tr);
+}
+
+// ─────────────────────────────────────────────
+//  Widget dispatcher
+// ─────────────────────────────────────────────
+function hydrateWidgets() {
+  document.querySelectorAll('.widget-placeholder').forEach(el => {
+    const name = el.dataset.widget;
+    if      (name === 'dye-fading')        widgetDyeFading(el);
+    else if (name === 'spectral-channels') widgetSpectralChannels(el);
+    else if (name === 'gate-diagram')      widgetGateDiagram(el);
+    else if (name === 'cost-breakdown')    widgetCostBreakdown(el);
+  });
+}
+
+// ─────────────────────────────────────────────
+//  Page renderers
+// ─────────────────────────────────────────────
+async function renderHome() {
+  let posts = [];
+  try { posts = await fetchJSON('/posts/index.json'); } catch(e) {}
+
+  // Kick off preloading all post markdown files
+  posts.forEach(p => preload(`/posts/${p.slug}.md`, r => r.text()));
+
+  const cards = posts.map(p => `
+    <article class="post-card" onclick="router.navigate('/posts/${p.slug}')">
+      <div class="post-card-body">
+        <div class="post-card-meta">${p.author} &middot; ${p.date}</div>
+        <div class="post-card-title">${p.title}</div>
+        <div class="post-card-lede">${p.lede}</div>
+        ${p.tags ? `<div class="post-card-tags">${p.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>` : ''}
+      </div>
+      <div class="post-card-arrow">→</div>
+    </article>`).join('');
+
+  renderShell({
+    masthead: `
+      <div class="eyebrow">Matthieu <span class="eyebrow-sep"></span> Build Log</div>
+      <h1 class="home-title">A record of things built</h1>
+      <p class="home-sub">Notes on film preservation, optics, and hardware — mostly things that broke several times before they worked.</p><br />`,
+    nav: `<span class="nav-label">All posts</span>`,
+    content: `<div class="post-list">${cards || '<p style="color:var(--mid);font-family:Helvetica Neue,sans-serif;font-size:0.9rem">No posts yet.</p>'}</div>`
+  });
+  document.title = 'Matthieu — Build Log';
+}
+
+/* async function renderPost({ slug }) {
+  // Also preload the index in background while on a post
+  preload('/posts/index.json', r => r.json());
+
+  let raw;
+  try { raw = await fetchMD(`/posts/${slug}.md`); }
+  catch(e) { return renderNotFound(); }
+
+  const { fm, body } = parseFrontmatter(raw);
+  _sectionCount = 0;
+  _pendingLabel = null;
+  const html = marked.parse(body);
+  const toc = buildTOC(html);
+
+  renderShell({
+    masthead: `
+      <div class="eyebrow">
+        ${fm.author||'Matthieu'}
+        <span class="eyebrow-sep"></span>
+        ${fm.date||''}
+      </div>
+      <h1>${fm.title||slug}</h1>
+      ${fm.lede ? `<p class="lede">${fm.lede}</p>` : ''}`,
+    nav: `<a href="/" data-route class="nav-back">← All posts</a>
+      ${toc.length ? toc.map(h=>`<a href="#${h.id}" class="nav-section">${h.text}</a>`).join('') : ''}`,
+    content: `<div class="prose">${html}</div>`,
+    isPost: true
+  });
+
+  document.title = `${fm.title||slug} — Matthieu`;
+  hydrateWidgets();
+
+  if (location.hash) {
+    const t = document.querySelector(location.hash);
+    if (t) setTimeout(() => t.scrollIntoView({ behavior:'smooth' }), 150);
+  }
+}
+*/
+async function renderPost({ slug }) {
+  preload('/posts/index.json', r => r.json());
+
+  let raw;
+  try {
+    raw = await fetchMD(`/posts/${slug}.md`);
+  } catch (e) {
+    return renderNotFound();
+  }
+
+  const { fm, body } = parseFrontmatter(raw);
+
+  let html = marked.parse(body);
+  html = transformSections(html);
+
+  const toc = buildTOC(html);
+
+  renderShell({
+    masthead: `
+      <div class="eyebrow">
+        ${fm.author || 'Matthieu'}
+        <span class="eyebrow-sep"></span>
+        ${fm.date || ''}
+      </div>
+      <h1>${fm.title || slug}</h1>
+      ${fm.lede ? `<p class="lede">${fm.lede}</p>` : ''}`,
+    nav: `
+      <a href="/" data-route class="nav-back">← All posts</a>
+      ${toc.length
+        ? toc.map(h =>
+            `<a href="#${h.id}" class="nav-section">${h.text}</a>`
+          ).join('')
+        : ''
+      }`,
+    content: `<div class="prose">${html}</div>`,
+    isPost: true
+  });
+
+  document.title = `${fm.title || slug} — Matthieu`;
+  hydrateWidgets();
+
+  if (location.hash) {
+    const t = document.querySelector(location.hash);
+    if (t) {
+      setTimeout(() => {
+        t.scrollIntoView({ behavior: 'smooth' });
+      }, 150);
+    }
+  }
+}
+async function renderNotFound() {
+  renderShell({
+    masthead: `<div class="byline">Error</div><h1>Page not found</h1>`,
+    nav: `<a href="/" data-route class="toc-back">← Home</a>`,
+    content: `<div class="not-found"><span class="not-found-code">404</span><p>That page doesn't exist. <a onclick="router.navigate('/')">Go home.</a></p></div>`
+  });
+  document.title = '404 — Matthieu';
+}
+
+// ─────────────────────────────────────────────
+//  Routes + Boot
+// ─────────────────────────────────────────────
+router.add('/', renderHome);
+router.add('', renderHome);
+router.add('/posts/:slug', renderPost);
+router.navigate(location.pathname, false);
+</script>
+</body>
+</html>
