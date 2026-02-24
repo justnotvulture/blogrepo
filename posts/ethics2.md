@@ -1,10 +1,9 @@
-﻿*The Irreducible Weight of Suffering*
-
-**The Irreducible Weight of Suffering:**
-
-Ethics, Fear, and the Foundations of Moral Action
-
-*On Why We Should Do Good in a World That May or May Not Be Watching*
+---
+title: The Irreducible Weight of Suffering
+author: Matthieu
+date: 2024-03
+lede: Why we should do good in a world that may or may not be watching?
+---
 
 
 # **Introduction: The Oldest Question, Restated**
@@ -149,5 +148,6 @@ And it leaves us, in the end, with the most honest possible account of why we sh
 
 
 *The weight of suffering does not require divine endorsement. It is irreducible. It is enough.*
+
 
 
