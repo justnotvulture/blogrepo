@@ -5,8 +5,6 @@ date: 2024-03
 lede: Why we should do good in a world that may or may not be watching?
 ---
 
-
-## **Introduction: The Oldest Question, Restated**
 There is a question so old that it has accumulated centuries of dust without losing any of its urgency: Why should I be good?
 
 This is not a naïve question. It is, in fact, one of the most philosophically demanding questions a person can ask, because it cuts beneath every surface-level account of morality and forces us to examine the bedrock. When Dostoevsky's Ivan Karamazov declared that "if God does not exist, everything is permitted," he was not being glib. He was articulating a genuine anxiety: that without a transcendent legislator, moral obligation dissolves into mere preference, and ethics becomes indistinguishable from aesthetics or appetite. This anxiety has never fully disappeared from Western moral thought, and it deserves to be taken seriously, not dismissed.
@@ -148,6 +146,7 @@ And it leaves us, in the end, with the most honest possible account of why we sh
 
 
 *The weight of suffering does not require divine endorsement. It is irreducible. It is enough.*
+
 
 
 
