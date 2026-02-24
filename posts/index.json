@@ -1,4 +1,4 @@
-[
+ [
   {
     "slug": "spectral-scanner",
     "title": "Building a spectral archival scanner for decaying film",
@@ -10,6 +10,18 @@
       "film",
       "archival",
       "optics"
+    ]
+  },
+   {
+    "slug": "ethics2",
+    "title": "The Irreducible Weight of Suffering",
+    "author": "Matthieu",
+    "date": "2026-02",
+    "lede": "Why we should do good in a world that may or may not be watching?",
+    "tags": [
+      "ethics",
+      "religion",
+      "consequentalism"
     ]
   },
   {
